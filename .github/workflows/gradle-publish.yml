@@ -46,7 +46,7 @@ jobs:
 
       # The USERNAME and TOKEN need to correspond to the credentials environment variables used in
       # the publishing section of your build.gradle
-      - name: DisplayMonitor Publish to GitHub Packages
+      - name: API Publish to GitHub Packages
         run: ./gradlew API:publish
         env:
           USERNAME: ${{ github.actor }}

@@ -24,7 +24,7 @@ publishing {
     publications {
         create<MavenPublication>("plugin") {
             groupId = project.group.toString()
-            artifactId = project.name.lowercase()
+            artifactId = "unique-item-provider"
             version = System.getenv("VERSION")
             from(components["java"])
         }
