@@ -1,1 +1,3 @@
-rootProject.name = "PluginName"
+rootProject.name = "UniqueItemProvider"
+
+include(":API")

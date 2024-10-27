@@ -1,4 +1,6 @@
-name: PluginName
-main: MainClass
+name: UniqueItemProvider
+main: tororo1066.uniqueitemprovider.UniqueItemProvider
 version: 1.0
-api-version: 1.17
+api-version: 1.19
+
+author: tororo_1066
