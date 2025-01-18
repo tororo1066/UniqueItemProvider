@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.7.20"
+    java
     `maven-publish`
 }
 
@@ -11,13 +11,12 @@ java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
 repositories {
     mavenCentral()
-    maven(url = "https://oss.sonatype.org/content/groups/public/")
-    maven(url = "https://papermc.io/repo/repository/maven-public/")
+    maven(url = "https://repo.papermc.io/repository/maven-public/")
 }
 
 dependencies {
-    compileOnly(kotlin("stdlib"))
     compileOnly("io.papermc.paper:paper-api:$pluginVersion-R0.1-SNAPSHOT")
+    compileOnly("org.jetbrains:annotations-java5:24.1.0")
 }
 
 publishing {

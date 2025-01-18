@@ -1,24 +1,56 @@
 package tororo1066.uniqueitemprovider
 
 import org.bukkit.Bukkit
-import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 
-open class UniqueItem(override var itemStack: ItemStack) : IUniqueItem {
-    override var providers: MutableList<AbstractItemProvider> = mutableListOf()
+open class UniqueItem(private var itemStack: ItemStack) : IUniqueItem {
+    private var providers: MutableList<AbstractItemProvider> = mutableListOf()
 
     init {
         val providers = getProviders(itemStack)
         this.providers.addAll(providers)
     }
 
-    override fun addProvider(provider: AbstractItemProvider) {
-        providers.add(provider)
+    override fun getItemStack(): ItemStack {
+        return itemStack
+    }
+
+    override fun setItemStack(itemStack: ItemStack) {
+        this.itemStack = itemStack
+    }
+
+    override fun getProviders(): List<AbstractItemProvider> {
+        return providers
+    }
+
+    private fun updateProviders() {
         val itemMeta = itemStack.itemMeta
-        val providers = providers.map { it.namespacedKey.toString() }
-        itemMeta.persistentDataContainer.set(UniqueItemProvider.PROVIDERS_KEY, PersistentDataType.LIST.strings(), providers)
+        itemMeta.persistentDataContainer.set(
+            UniqueItemProvider.PROVIDERS_KEY,
+            PersistentDataType.TAG_CONTAINER,
+            itemMeta.persistentDataContainer.adapterContext.newPersistentDataContainer().also {
+                for (provider in this.providers) {
+                    it.set(
+                        provider.namespacedKey,
+                        PersistentDataType.TAG_CONTAINER,
+                        provider.createPersistentDataContainer(itemMeta.persistentDataContainer.adapterContext.newPersistentDataContainer())
+                    )
+                }
+            }
+        )
         itemStack.itemMeta = itemMeta
+    }
+
+    override fun setProviders(providers: List<AbstractItemProvider>) {
+        this.providers = providers.toMutableList()
+        updateProviders()
+    }
+
+
+    override fun addProvider(provider: AbstractItemProvider) {
+        this.providers.add(provider)
+        updateProviders()
     }
 
     companion object {
@@ -42,10 +74,13 @@ open class UniqueItem(override var itemStack: ItemStack) : IUniqueItem {
         fun getProviders(itemStack: ItemStack): List<AbstractItemProvider> {
             if (!itemStack.hasItemMeta()) return emptyList()
             val itemMeta = itemStack.itemMeta
-            if (!itemMeta.persistentDataContainer.has(UniqueItemProvider.PROVIDERS_KEY, PersistentDataType.LIST.strings())) return emptyList()
-            val providers = itemMeta.persistentDataContainer.get(UniqueItemProvider.PROVIDERS_KEY, PersistentDataType.LIST.strings())!!
-            val namespacedKeys = providers.map { NamespacedKey.fromString(it)!! }
-            return namespacedKeys.mapNotNull { UniqueItemProvider.providers[it] }
+            if (!itemMeta.persistentDataContainer.has(UniqueItemProvider.PROVIDERS_KEY, PersistentDataType.TAG_CONTAINER)) return emptyList()
+            val providers = itemMeta.persistentDataContainer.get(UniqueItemProvider.PROVIDERS_KEY, PersistentDataType.TAG_CONTAINER)!!
+            return providers.keys.mapNotNull {
+                val provider = UniqueItemProvider.providers[it]?.getConstructor()?.newInstance() ?: return@mapNotNull null
+                provider.loadPersistentDataContainer(providers.get(it, PersistentDataType.TAG_CONTAINER) ?: return@mapNotNull null)
+                provider
+            }
         }
     }
 }

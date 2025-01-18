@@ -4,3 +4,12 @@ version: 1.0
 api-version: 1.19
 
 author: tororo_1066
+
+commands:
+  uniqueitemprovider:
+    permission: uip.op
+    aliases:
+      - uip
+
+libraries:
+  - org.jetbrains.kotlin:kotlin-stdlib:1.7.20
