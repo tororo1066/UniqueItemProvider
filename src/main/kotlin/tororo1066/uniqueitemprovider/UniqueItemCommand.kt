@@ -3,6 +3,8 @@ package tororo1066.uniqueitemprovider
 import org.bukkit.NamespacedKey
 import tororo1066.tororopluginapi.annotation.SCommandBody
 import tororo1066.tororopluginapi.sCommand.*
+import tororo1066.uniqueitemprovider.inject.EditItemInjector
+import tororo1066.uniqueitemprovider.inject.ItemInjector
 import tororo1066.uniqueitemprovider.updateProvider.EditUpdateProviderItem
 import tororo1066.uniqueitemprovider.updateProvider.UpdateProviderItem
 
@@ -42,11 +44,7 @@ class UniqueItemCommand: SCommand(
 
     @SCommandBody
     val editUpdateProviderItem = command().addArg(SCommandArg("createUpdateProviderItem"))
-        .addArg(SCommandArg(SCommandArgType.STRING).addChangeableAllowString(object : ChangeableAllowString() {
-            override fun getAllowString(data: SCommandData): Collection<String> {
-                return UpdateProviderItem.items.keys
-            }
-        }))
+        .addArg(SCommandArg(SCommandArgType.STRING).addAllowStringFunction { UpdateProviderItem.items.keys })
         .setPlayerFunction { sender, _, _, args ->
             val item = UpdateProviderItem.items[args[1]] ?: return@setPlayerFunction
             EditUpdateProviderItem(item).open(sender)
@@ -54,11 +52,7 @@ class UniqueItemCommand: SCommand(
 
     @SCommandBody
     val getUpdateProviderItem = command().addArg(SCommandArg("getUpdateProviderItem"))
-        .addArg(SCommandArg(SCommandArgType.STRING).addChangeableAllowString(object : ChangeableAllowString() {
-            override fun getAllowString(data: SCommandData): Collection<String> {
-                return UpdateProviderItem.items.keys
-            }
-        }))
+        .addArg(SCommandArg(SCommandArgType.STRING).addAllowStringFunction { UpdateProviderItem.items.keys })
         .setPlayerFunction { sender, _, _, args ->
             val item = UpdateProviderItem.items[args[1]] ?: return@setPlayerFunction
             sender.inventory.addItem(item.itemStack)
@@ -66,9 +60,31 @@ class UniqueItemCommand: SCommand(
         }
 
     @SCommandBody
+    val clearUniqueItem = command().addArg(SCommandArg("clear"))
+        .setPlayerFunction { sender, _, _, _ ->
+            UniqueItem.clear(sender.inventory.itemInMainHand)
+            sender.sendMessage("UniqueItem cleared.")
+        }
+
+    @SCommandBody
+    val createInjector = command().addArg(SCommandArg("createInjector"))
+        .setPlayerFunction { sender, _, _, _ ->
+            EditItemInjector().open(sender)
+        }
+
+    @SCommandBody
+    val editInjector = command().addArg(SCommandArg("editInjector"))
+        .addArg(SCommandArg(SCommandArgType.STRING).addAllowStringFunction { ItemInjector.injectors.keys })
+        .setPlayerFunction { sender, _, _, args ->
+            val injector = ItemInjector.injectors[args[1]] ?: return@setPlayerFunction
+            EditItemInjector(injector).open(sender)
+        }
+
+    @SCommandBody
     val reload = command().addArg(SCommandArg("reload"))
         .setPlayerFunction { sender, _, _, _ ->
             UpdateProviderItem.reload()
+            ItemInjector.loadAll()
             sender.sendMessage("Reloaded.")
         }
 }

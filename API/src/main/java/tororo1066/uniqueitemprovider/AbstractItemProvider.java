@@ -27,7 +27,8 @@ public abstract class AbstractItemProvider {
 
     public void onDrop(@NotNull PlayerDropItemEvent e, @NotNull IUniqueItem item) {}
 
-    public void onItemClick(@NotNull InventoryClickEvent e, @NotNull IUniqueItem item) {}
+    //このアイテムに対しての処理かを判別するのが難しいため、コメントアウト
+//    public void onItemClick(@NotNull InventoryClickEvent e, @NotNull IUniqueItem item) {}
 
     public void onHeld(@NotNull PlayerItemHeldEvent e, @NotNull IUniqueItem item) {}
 }

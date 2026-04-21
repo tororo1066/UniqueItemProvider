@@ -1,0 +1,3 @@
+opentelemetry:
+  endpoint: http://otel-collector:4318/v1/logs
+  service-name: UniqueItemProvider

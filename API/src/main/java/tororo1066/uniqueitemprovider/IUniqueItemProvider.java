@@ -11,6 +11,8 @@ public interface IUniqueItemProvider {
 
     @NotNull IUniqueItem getOrCreateUniqueItem(@NotNull ItemStack itemStack);
 
+    void clearUniqueItem(@NotNull ItemStack itemStack);
+
     @NotNull List<AbstractItemProvider> getProviders(@NotNull ItemStack itemStack);
 
     void registerProvider(@NotNull AbstractItemProvider provider);

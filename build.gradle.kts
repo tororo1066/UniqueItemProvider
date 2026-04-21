@@ -1,19 +1,14 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import groovy.lang.Closure
 
 plugins {
-    kotlin("jvm") version "1.7.20"
-    id("com.github.ben-manes.versions") version "0.41.0"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("org.jmailen.kotlinter") version "3.8.0"
+    kotlin("jvm") version "2.2.0"
+    id("com.gradleup.shadow") version "9.1.0"
 }
-
-val gitVersion: Closure<String> by extra
 
 val pluginVersion: String by project.ext
 val apiVersion: String by project.ext
 
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+java.toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 
 repositories {
     mavenCentral()
@@ -30,12 +25,31 @@ repositories {
     }
 }
 
+fun ModuleDependency.excludeKotlinStdlib(): ModuleDependency {
+    exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+    return this
+}
+
 dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly("io.papermc.paper:paper-api:$pluginVersion-R0.1-SNAPSHOT")
     implementation("tororo1066:tororopluginapi:$apiVersion")
     compileOnly("com.mojang:brigadier:1.0.18")
     implementation(project(":API"))
+//    compileOnly("de.tr7zw:item-nbt-api-plugin:2.15.2")
+
+    implementation("io.opentelemetry:opentelemetry-api:1.57.0") {
+        excludeKotlinStdlib()
+    }
+    implementation("io.opentelemetry:opentelemetry-sdk:1.57.0") {
+        excludeKotlinStdlib()
+    }
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.57.0") {
+        excludeKotlinStdlib()
+    }
+    implementation("io.opentelemetry:opentelemetry-exporter-sender-jdk:1.57.0") {
+        excludeKotlinStdlib()
+    }
 }
 
 tasks.withType<ShadowJar> {

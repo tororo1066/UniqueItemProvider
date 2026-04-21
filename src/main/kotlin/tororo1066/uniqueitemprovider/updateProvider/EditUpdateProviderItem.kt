@@ -1,23 +1,21 @@
 package tororo1066.uniqueitemprovider.updateProvider
 
 import org.bukkit.Material
-import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.PlayerInventory
-import org.bukkit.persistence.PersistentDataType
 import tororo1066.tororopluginapi.SJavaPlugin
-import tororo1066.tororopluginapi.SStr
+import tororo1066.tororopluginapi.defaultMenus.LargeSInventory
 import tororo1066.tororopluginapi.sInventory.SInventory
 import tororo1066.tororopluginapi.sInventory.SInventoryItem
 import tororo1066.tororopluginapi.sItem.SItem
 import tororo1066.uniqueitemprovider.UniqueItem
-import tororo1066.uniqueitemprovider.UniqueItemProvider
 import java.io.File
 
-class EditUpdateProviderItem(val data: UpdateProviderItem? = null): SInventory(SJavaPlugin.plugin, "Edit Update Provider Item", 5) {
+class EditUpdateProviderItem(private val data: UpdateProviderItem? = null): SInventory(SJavaPlugin.plugin, "Edit Update Provider Item", 6) {
 
     var itemStack = data?.itemStack ?: ItemStack(Material.STONE)
+    val ignores = data?.ignores ?: arrayListOf()
 
     init {
         setOnClick {
@@ -25,62 +23,58 @@ class EditUpdateProviderItem(val data: UpdateProviderItem? = null): SInventory(S
             if (it.clickedInventory !is PlayerInventory) return@setOnClick
             val item = it.currentItem ?: return@setOnClick
             if (item.isSimilar(itemStack)) return@setOnClick
-            itemStack = item.clone()
+            itemStack = item.clone().apply {
+                amount = 1
+            }
             renderMenu(it.whoClicked as Player)
         }
     }
 
     override fun renderMenu(p: Player): Boolean {
-        fillItem(SInventoryItem(Material.BLUE_STAINED_GLASS_PANE).setDisplayName(" ").setCanClick(false))
+        fillItem(SInventoryItem(Material.GRAY_STAINED_GLASS_PANE).setDisplayName(" ").setCanClick(false))
 
-        removeItem(13)
-        setItem(13, SInventoryItem(itemStack).setCanClick(false))
+        removeItem(24)
+        setItem(24, SInventoryItem(itemStack).setCanClick(false))
+        setItems(listOf(14, 15, 16, 23, 25, 32, 33, 34), SInventoryItem(Material.BLACK_STAINED_GLASS_PANE).setDisplayName(" ").setCanClick(false))
 
-        setItem(0, createInputItem(
-            SItem(Material.NAME_TAG)
-                .setDisplayName("§a表示名を設定する"),
-            SStr::class.java, "表示名を入力してください(/cancelでキャンセル)", action = { sStr, _ ->
-                itemStack = SItem(itemStack.clone()).setDisplayName(sStr.toString()).build()
-            }
-        ))
+        setItem(29, SInventoryItem(Material.LAPIS_BLOCK)
+            .setDisplayName("§9アップデートしない項目を設定する")
+            .setCanClick(false)
+            .setClickEvent {
+                val inv = object : LargeSInventory("§9アップデートしない項目を設定する") {
+                    override fun renderMenu(): Boolean {
+                        val items = arrayListOf<SInventoryItem>()
+                        ItemCopy.copies.forEach { (name, copy) ->
+                            val enable = ignores.contains(copy)
+                            items.add(
+                                SInventoryItem(if (enable) Material.EMERALD_BLOCK else Material.REDSTONE_BLOCK)
+                                    .setDisplayName("§9$name")
+                                    .setLore("§d現在の値: §e${if (enable) "§f[§a有効§f]" else "§f[§c無効§f]"}")
+                                    .setCanClick(false)
+                                    .setClickEvent {
+                                        if (ignores.contains(copy)) {
+                                            ignores.remove(copy)
+                                        } else {
+                                            ignores.add(copy)
+                                        }
+                                        allRenderMenu()
+                                    }
+                            )
+                        }
 
-        setItem(1, createInputItem(
-            SItem(Material.BOOK)
-                .setDisplayName("§a説明文を設定する"),
-            SStr::class.java, "説明文を入力してください(/cancelでキャンセル)", action = { sStr, _ ->
-                itemStack = SItem(itemStack.clone()).setLore(sStr.toString().split("\\n")).build()
-            }
-        ))
+                        setResourceItems(items)
+                        return true
+                    }
+                }
+
+                moveChildInventory(inv, p)
+            })
 
         fun setKeyMeta(itemStack: ItemStack, key: String) {
             UniqueItem.getOrCreate(itemStack).addProvider(UpdateProvider().also { it.key = key })
-//            itemStack.editMeta { meta ->
-//                meta.persistentDataContainer.set(
-//                    NamespacedKey(SJavaPlugin.plugin, "unique_item"),
-//                    PersistentDataType.STRING,
-//                    ""
-//                )
-//                meta.persistentDataContainer.set(
-//                    UniqueItemProvider.PROVIDERS_KEY,
-//                    PersistentDataType.TAG_CONTAINER,
-//                    meta.persistentDataContainer.adapterContext.newPersistentDataContainer().also { container ->
-//                        container.set(
-//                            NamespacedKey(SJavaPlugin.plugin, "update"),
-//                            PersistentDataType.TAG_CONTAINER,
-//                            container.adapterContext.newPersistentDataContainer().also { updateContainer ->
-//                                updateContainer.set(
-//                                    NamespacedKey(SJavaPlugin.plugin, "key"),
-//                                    PersistentDataType.STRING,
-//                                    key
-//                                )
-//                            }
-//                        )
-//                    }
-//                )
-//            }
         }
 
-        setItem(40, SInventoryItem(SItem(Material.LIME_STAINED_GLASS_PANE))
+        setItems(45..53, SInventoryItem(SItem(Material.LIME_STAINED_GLASS_PANE))
             .setDisplayName("§a保存する")
             .setClickEvent {
                 if (data == null) {
@@ -95,7 +89,8 @@ class EditUpdateProviderItem(val data: UpdateProviderItem? = null): SInventory(S
                             UpdateProviderItem.items[key] = UpdateProviderItem(
                                 key,
                                 itemStack.clone().also { setKeyMeta(it, key) },
-                                File(SJavaPlugin.plugin.dataFolder, "updateProvider/$path.yml").path
+                                File(SJavaPlugin.plugin.dataFolder, "updateProvider/$path.yml").path,
+                                ignores
                             ).also { it.save() }
                             p.sendMessage("§a保存しました")
                         }, onCancel = {

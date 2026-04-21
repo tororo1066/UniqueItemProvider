@@ -82,5 +82,13 @@ open class UniqueItem(private var itemStack: ItemStack) : IUniqueItem {
                 provider
             }
         }
+
+        fun clear(itemStack: ItemStack){
+            if (!itemStack.hasItemMeta()) return
+            val itemMeta = itemStack.itemMeta
+            itemMeta.persistentDataContainer.remove(UniqueItemProvider.UNIQUE_ITEM_KEY)
+            itemMeta.persistentDataContainer.remove(UniqueItemProvider.PROVIDERS_KEY)
+            itemStack.itemMeta = itemMeta
+        }
     }
 }

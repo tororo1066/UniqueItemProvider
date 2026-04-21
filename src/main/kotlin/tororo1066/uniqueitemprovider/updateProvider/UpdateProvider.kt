@@ -27,10 +27,23 @@ class UpdateProvider: AbstractItemProvider(NamespacedKey(SJavaPlugin.plugin, "up
     }
 
     override fun onHeld(e: PlayerItemHeldEvent, item: IUniqueItem) {
-        val itemStack = UpdateProviderItem.items[key]?.itemStack ?: return
+        val updateProviderItem = UpdateProviderItem.items[key] ?: return
+        val itemStack = updateProviderItem.itemStack
         val rawItem = e.player.inventory.getItem(e.newSlot) ?: return
-        if (!itemStack.isSimilar(rawItem)) {
-            e.player.inventory.setItem(e.newSlot, itemStack)
+
+        var newItem = rawItem.clone()
+        ItemCopy.copies.values.forEach {
+            if (!updateProviderItem.ignores.contains(it) && !it.isSimilar(itemStack, rawItem)) {
+                newItem = it.cloneAndCopy(newItem, itemStack)
+            }
+        }
+
+        if (!newItem.isSimilar(rawItem)) {
+            e.player.inventory.setItem(e.newSlot, newItem.apply {
+                amount = minOf(amount, maxStackSize)
+            })
         }
     }
+
+
 }

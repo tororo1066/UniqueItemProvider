@@ -10,13 +10,9 @@ import java.util.concurrent.CompletableFuture
 class UpdateProviderItem(
     val key: String,
     var itemStack: ItemStack,
-    val path: String
+    val path: String,
+    val ignores: ArrayList<ItemCopy>
 ) {
-
-//    fun toSection(section: ConfigurationSection): ConfigurationSection {
-//        section.set("itemStack", itemStack)
-//        return section
-//    }
 
     fun save(): CompletableFuture<Void> {
         return CompletableFuture.runAsync {
@@ -27,6 +23,7 @@ class UpdateProviderItem(
             }
             val yaml = YamlConfiguration.loadConfiguration(file)
             yaml.set("$key.itemStack", itemStack)
+            yaml.set("$key.ignores", ignores.map { it.name })
             yaml.save(file)
         }
     }
@@ -36,7 +33,11 @@ class UpdateProviderItem(
 
         fun load(key: String, config: ConfigurationSection, path: String): UpdateProviderItem? {
             val itemStack = config.getItemStack("itemStack") ?: return null
-            return UpdateProviderItem(key, itemStack, path)
+            val ignores = config.getStringList("ignores").mapNotNull {
+                ItemCopy.copies[it] ?: return@mapNotNull null
+            }.toCollection(arrayListOf())
+
+            return UpdateProviderItem(key, itemStack, path, ignores)
         }
 
         init {

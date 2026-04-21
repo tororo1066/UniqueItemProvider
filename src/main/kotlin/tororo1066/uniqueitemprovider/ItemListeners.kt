@@ -1,7 +1,5 @@
 package tororo1066.uniqueitemprovider
 
-import org.bukkit.Bukkit
-import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerItemConsumeEvent
@@ -28,11 +26,11 @@ class ItemListeners {
         item.providers.forEach { it.onDrop(e, item) }
     }
 
-    @SEventHandler
-    fun onItemClick(e: InventoryClickEvent) {
-        val item = e.currentItem?.let { UniqueItem.get(it) } ?: return
-        item.providers.forEach { it.onItemClick(e, item) }
-    }
+//    @SEventHandler
+//    fun onItemClick(e: InventoryClickEvent) {
+//        val item = e.currentItem?.let { UniqueItem.get(it) } ?: return
+//        item.providers.forEach { it.onItemClick(e, item) }
+//    }
 
     @SEventHandler
     fun onHeld(e: PlayerItemHeldEvent) {
