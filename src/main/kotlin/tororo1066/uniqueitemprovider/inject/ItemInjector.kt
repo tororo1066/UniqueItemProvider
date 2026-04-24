@@ -92,13 +92,17 @@ class ItemInjector: Cloneable {
 
             val jsonLog = gson.toJson(log)
 
-            val telemetryLogger = UniqueItemProvider.telemetry?.logger
-            if (telemetryLogger != null) {
-                telemetryLogger.logRecordBuilder()
-                    .setBody(jsonLog)
-                    .emit()
+            if (UniqueItemProvider.enabledTelemetry) {
+                val telemetryLogger = UniqueItemProvider.telemetry?.logger
+                if (telemetryLogger != null) {
+                    telemetryLogger.logRecordBuilder()
+                        .setBody(jsonLog)
+                        .emit()
+                } else {
+                    SJavaPlugin.plugin.logger.warning("Telemetry is not enabled. Enable telemetry to see injector logs.")
+                    SJavaPlugin.plugin.logger.info("Injector log: $jsonLog")
+                }
             } else {
-                SJavaPlugin.plugin.logger.warning("Telemetry is not enabled. Enable telemetry to see injector logs.")
                 SJavaPlugin.plugin.logger.info("Injector log: $jsonLog")
             }
             return result
@@ -116,21 +120,6 @@ class ItemInjector: Cloneable {
     fun <T: AbstractInjectorData> modify(modification: AbstractModification<T>, itemStack: ItemStack, modificationData: AbstractInjectorData): ItemStack {
         return modification.modify(itemStack, modificationData as T)
     }
-
-//    fun save() {
-//        val yaml = YamlConfiguration()
-//        injects.forEach { (inject, data) ->
-//            val section = yaml.createSection("injects.${inject.name}")
-//            data.save(section)
-//        }
-//        modification?.let { modification ->
-//            yaml.set("modification", modification.name)
-//            modificationData?.let { modificationData ->
-//                val section = yaml.createSection("modificationData")
-//                modificationData.save(section)
-//            }
-//        }
-//    }
 
     fun save(): CompletableFuture<Void> {
         return CompletableFuture.runAsync {

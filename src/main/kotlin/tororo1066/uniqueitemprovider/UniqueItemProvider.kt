@@ -25,15 +25,17 @@ class UniqueItemProvider: SJavaPlugin(UseOption.SInput, UseOption.SConfig), IUni
         val legacyComponentSerializer = LegacyComponentSerializer.builder().hexColors().build()
         val miniMessage = MiniMessage.miniMessage()
 
+        var enabledTelemetry = false
         var telemetry: SOpenTelemetry? = null
     }
 
     override fun onStart() {
-        telemetry = try {
-            SOpenTelemetry(this).also { it.logger }
-        } catch (e: Exception) {
-            logger.warning("Failed to initialize OpenTelemetry: ${e.message}")
-            null
+//        telemetry = SOpenTelemetry(this)
+
+        val telemetryEnabled = config.getBoolean("opentelemetry.enabled", false)
+        if (telemetryEnabled) {
+            telemetry = SOpenTelemetry(this)
+            enabledTelemetry = true
         }
 
         registerProvider(UpdateProvider())
